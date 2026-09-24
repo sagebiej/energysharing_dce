@@ -1,0 +1,225 @@
+---
+title: "Simulation experimental design"
+author: ""
+date: "`r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
+number_sections: true
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc_depth: 3
+    toc_expand: 2
+    toc_float: true
+
+    
+params:
+  path: "sim_results/simulationresults_Pretest_2_powa95sim500respondents1500.RDS"
+  modeldesc: "this is my placeholder"
+---
+
+
+<style>
+/* Custom CSS for sticky first column in a specific table */
+.sticky-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.sticky-table th,
+.sticky-table td {
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  background: white;
+  z-index: 1;
+}
+
+.sticky-table th:first-child,
+.sticky-table td:first-child {
+  left: 0;
+  z-index: 2;
+  background: #f8f9fa; /* Adjust the color as needed */
+}
+
+
+.scroll-box {
+  overflow: auto;
+  width: 100%;
+  height: 500px; /* Set a fixed height for the scroll box */
+}
+
+.scroll-box::-webkit-scrollbar {
+  height: 12px; /* Adjust height for horizontal scrollbar */
+  width: 12px; /* Adjust width for vertical scrollbar */
+}
+
+.scroll-box::-webkit-scrollbar-thumb {
+  background: #888; /* Scrollbar color */
+  border-radius: 10px; /* Scrollbar rounded edges */
+}
+
+.scroll-box::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Scrollbar color on hover */
+}
+</style>
+
+
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(dplyr)
+library(kableExtra)
+library(purrr)
+library(gridExtra)
+```
+
+```{r run_code, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+
+filename1 <- params$path
+all_designs<- readRDS(filename1) 
+
+
+
+
+
+         
+
+
+ # Calculate the duration in seconds
+    duration_secs <- all_designs[["time"]]$toc - all_designs[["time"]]$tic
+
+    # Convert to a period object
+    duration_period <-as.character(lubridate::seconds_to_period(round(as.numeric(duration_secs))))
+
+
+```
+
+# Preliminary information
+
+This document documents the process of generating and testing different designs for a study with 5 attributes and two alternatives. The process of finding the best design follows different steps.
+
+1.  Generating different designs: The parameters used to generate the designs are denoted as *priors*
+2.  Simulating a data set: The simulation assumes a clearly defined data generating process (DGP). The DGP is specified in terms of error variance, utility parameters and a specification of the utility function. If we assume a latent class structure, we use different utility functions for different people or groups of people. The parameters used to generate the data are denoted as *true parameters*.
+3.  Estimating a model on the simulated dataset. Here, we can estimate a model that is exactly the same as the GDP or a model that deviates from the GDP. We denote the parameters estimated in each model as the *estimated parameters.*
+4.  We repeat steps 2 and 3 $N$ times to infer which design is the best. Here we look at statistical power (at a 5% significance level), unbiasedness and efficiency.
+
+
+    -   Power: If we have 100 simulations, how often do we find an effect (knowing that the effect exists).
+
+    -   Unbiasedness: If we have 100 simulations, we know that each estimation will not give the true parameter, but something around the true parameter. This is because the DGP has some randomness involved. But the *estimated parameters* should should fluctuate around the *true parameter*. Thus, the mean of the $N$ *estimated parameters* should be equal to the *true parameter*.
+
+    -   Efficiency: This is a relative measure. The design we consider as efficient is the one, that has lower mean estimated standard errors (equally p-values) than all other other designs.
+
+
+5. Once we have found a design, we check each choice set manually to make sure the choice sets are not bogous to the respondents. If we find bogous choice set we either take another design, or change this choice set. 
+
+
+Note
+
+:     Unbiasedness and efficiency are independent of the error variance and effect size. Power, in contrast, depends on the magnitude of the *true parameters* or the error variance. As we will not know these values before we have collected the data, power is somehow an abitrarly measure. The best strategy is to use the  parameters from a similar study as the *true parameters*, and multiply it by a constant $ c < 1$. Then we get a rather conservative power estimate. Still, we can always fool ourselves (and reviewers) by using parameters that give us the power we want. 
+
+
+For the simulations, we use `r all_designs[[1]]$metainfo["NoResp"]` respondents for a GDP with homogenous preferences (conditional logit model). 
+
+
+
+
+# Simulation
+
+
+## Conditional logit
+
+The following presents the results from a DGP of the conditional logit model. This is the standard approach and assumes homogeneous preferences.
+
+The simulation has `r all_designs[[1]]$metainfo["NoResp"]` respondents and `r all_designs[[1]]$metainfo["NoSim"]` runs. The simulation itself took `r duration_period` .
+
+
+
+The simulation is based on the output file `r filename1`
+
+### Unbiasedness
+
+@tbl-trueCL shows the *true parameters* used for the simulation.
+
+```{r}
+#| label: tbl-trueCL
+#| tbl-cap: "True parameter values used in the DGP"
+
+
+kable(unlist(all_designs$arguements$`Beta values`), digits = 2) %>% kable_styling()
+```
+
+@tbl-summ shows summary statistics of the *estimated parameters* for the `r all_designs[[1]]$metainfo["NoSim"]` runs. We want to make sure that they are nearly equal to the *true parameters*.
+
+
+
+
+```{r}
+#| label: tbl-summ
+#| tbl-cap: "Means and medians of estimated parameters over all runs"
+
+
+kable(
+  all_designs[["summaryall"]][1:14,] %>% 
+    select(ends_with(c("parname", "truepar", ".mean", ".median")) ),
+      format = "html" ,digits = 2, escape = FALSE, table.attr = "class='sticky-table'") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "100%", extra_css = "class='scroll-box'")
+```
+
+
+### Efficiency
+
+@tbl-summpval shows the summary statistics of values of robust p-values over all runs.
+
+```{r}
+#| label: tbl-summpval
+#| tbl-cap: "Summary statistics of estimated robust p values over all runs"
+
+
+kable(all_designs[["summaryall"]][15:28,] %>% select(-truepar, -ends_with(".n")), format = "html" ,digits = 2, escape = FALSE, table.attr = "class='sticky-table'") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "100%")
+
+```
+
+
+### Statistical power
+
+In @tbl-powercondl, we see the power (5% significance) for the design
+
+
+```{r}
+#| label: tbl-powercondl
+#| tbl-cap: "Power simulations for Conditional Logit DGP"
+
+
+
+
+# Extracting only TRUE values
+true_values <- sapply(all_designs[["powa"]], function(x) x["TRUE"])
+names(true_values) <- sub( ".TRUE","", names(true_values))
+
+
+
+# Generating the kable table
+kable(true_values, format = "html" ,col.names = c("Design" , "Power (95%)")) %>% kable_styling()
+
+```
+
+### Illustration of simulated parameter values
+
+To facilitate interpretation and judgement of the design, we  plot the densities of *estimated parameters* over all runs.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#map(all_designs[["graphs"]],print)
+all_designs[["graphs"]]
+
+#do.call(grid.arrange,all_designs[["graphs"]])
+```
+
