@@ -423,7 +423,6 @@ flex <- flextable(result_df_final) %>%
 
 if (interactive()) {
   print(flex)
-  print(flex, preview = "docx")
 }
 output_dir <- model$apollo_control$outputDirectory
 fname <- paste0(output_dir, "/", apollo_control$modelName, ".docx")

@@ -292,7 +292,6 @@ flex <- flextable(result_df_final) %>%
 ### Preview in R:
 
 print(flex)
-print(flex,preview="docx")
 output_dir <- model$apollo_control$outputDirectory
 fname <- paste0(output_dir, "/", apollo_control$modelName, ".docx")
 save_as_docx(flex, path = fname)#, pr_section = set_prop)

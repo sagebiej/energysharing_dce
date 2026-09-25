@@ -45,7 +45,7 @@ WTP space. The models are estimated with 1,000 draws.
 | `1_Data_Procession.R` | data preparation, creates `df_long` | |
 | `2_Plausichecks_main.R` | plausibility checks | |
 | `3_Choice_behaviour.R` | choice behaviour, approval rates | Figure 2, Figure A.1 |
-| `3_Multicollinearity_Check.R` | correlation of socio-demographic variables | Table A.3 |
+| `3_Multicollinearity_Check.R` | correlation of socio-demographic variables, saved to `Hauptstudie/Paper/Table_A3_correlations.docx` | Table A.3 |
 | `3_Soziodem.R` | sample description | Table 4 |
 | `3_Status_Quo_choosers.R` | reasons for keeping the status quo | Table A.9 |
 | `4_CL_*.R`, `5_CL_*.R` | conditional logit, preference and WTP space | Table A.8 |

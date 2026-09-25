@@ -60,7 +60,8 @@ corr_df <- tibble::rownames_to_column(corr_df, var = "Variable")
 
 # Create flextable
 ft <- flextable(corr_df)
-print(ft,preview="docx")
+# Table A.3
+save_as_docx(ft, path = "Hauptstudie/Paper/Table_A3_correlations.docx")
 
 
 
