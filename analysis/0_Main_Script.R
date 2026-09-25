@@ -35,8 +35,6 @@ if (length(script) == 0 && requireNamespace("rstudioapi", quietly = TRUE) && rst
 # file.exists is FALSE after source(chdir = TRUE), which is already in the folder
 if (length(script) == 1 && nzchar(script) && file.exists(script)) setwd(dirname(normalizePath(script)))
 
-plot.new()
-
 ########################################################################
 ### Settings                                                         ###
 ########################################################################
