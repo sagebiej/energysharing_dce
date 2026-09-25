@@ -12,9 +12,10 @@
 ### The raw data are downloaded from Zenodo by 1_Data_Procession.R (doi 10.5281/zenodo.22829058).
 ### No estimated model is needed: all models are estimated from scratch.
 ###
-### Runtime (rough, 4 cores): descriptive scripts minutes, conditional
-### logit minutes, mixed logit several hours (search for starting values,
-### 1,000 draws), latent class models several hours.
+### Runtime (rough): descriptive scripts and conditional logit minutes;
+### mixed logit 20 to 55 minutes per model on 25 cores from the stored
+### starting values (the search took 8 to 21 hours per model); latent
+### class models several hours on 4 cores.
 ########################################################################
 
 # Clear environment
@@ -40,12 +41,14 @@ plot.new()
 ### Settings                                                         ###
 ########################################################################
 
-# Latent class models (scripts 8 to 13):
-# FALSE  estimate from the stored starting values in 8_LCL_start_values.R
-#        (the best solutions of the multi-start search reported in A.3)
-# TRUE   repeat the multi-start search from random starting values first
-#        (9_LCL_multistart_search.R, one to two days) and start from its
-#        solutions
+# Mixed logit (scripts 6 and 7) and latent class models (8 to 13):
+# FALSE  estimate from the stored starting values in 6_MXL_start_values.R
+#        and 8_LCL_start_values.R (the best solutions of the searches;
+#        for the latent class models reported in A.3)
+# TRUE   repeat the searches from random starting values first
+#        (apollo_searchStart() in scripts 6 and 7, 8 to 21 hours per
+#        model; 9_LCL_multistart_search.R, one to two days) and start
+#        from their solutions
 RUN_SEARCH <- FALSE
 
 # Stored as an option, because 1_Data_Procession.R clears the workspace

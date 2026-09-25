@@ -1,13 +1,11 @@
 ######################################################################
 ### Study         : DCE Energy Sharing                             ###
 ### Description   : Script for Mixed Logit Model in Preference     ###
-###                 Space for Subsample New Target Group           ###
+###                 Space, new target group, interactions not      ###
+###                 random                                         ###
 ### Output        : Flextable (Word file)                          ###
-### Date          : 11.06.2025                                     ###
+### Date          : 31.01.2025                                     ###
 ######################################################################
-
-
-#### Apollo standard script #####
 
 # Load apollo package
 library(apollo)
@@ -33,7 +31,7 @@ dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 ### Set core controls
 apollo_control = list(
   modelName  = "MXL_PS_Subsample_New_Target_Group",
-  modelDescr = "MXL preference space baseline",
+  modelDescr = "MXL in Preference Space with interactions for New Target group only",
   indivID    ="i_NUMBER",
   mixing     = TRUE,
   HB= FALSE,
@@ -41,28 +39,28 @@ apollo_control = list(
   outputDirectory = output_dir
 )
 
+### Check whether there are n.a. in relevant variables ####
 
-# Filter to exclude all individuals who are neither tenants, nor low-income, nor living in a multi-family building (MFH)
-apollo_ready_dataset <- df_long
+# List of variables to be checked
+vars_util1 <- c(
+  "OrgCit","OrgMun","PartiInv","PartiMem","GoalSoc","GoalEco","GoalBoth","Con","Price",
+  "inter_env_awareness_score",
+  "inter_sex",
+  "inter_age",
+  "inter_educ_years"
+)
+
+apollo_ready_dataset <- df_long 
 apollo_ready_dataset_clean <- apollo_ready_dataset %>%
   filter(
-    mfh == 1 | lowincome == 1 | tenant == 1)
+    if_all(all_of(vars_util1), is.finite),
+    lowincome == 1 | tenant == 1 | mfh == 1
+  )
 database <- as.data.frame(apollo_ready_dataset_clean)
 database <- database[order(database$i_NUMBER),]
 
 
-### Check whether there are n.a. in relevant variables ####
-
-# List of variables to be checked
-vars_to_check <- c("OrgCit", "OrgMun", "PartiInv", "PartiMem", 
-                   "GoalSoc", "GoalEco", "GoalBoth","Con", "Price")
-
-# Verify that each selected variable contains only the expected unique values
-lapply(database[vars_to_check], function(x) unique(x))
-
-
-##### Define model parameters depending on attributes and model specification ####
-# Set values to 0 for conditional logit model
+##### Define levels according to outcome of CL-model
 
 apollo_beta=c(asc = 0,
               borgcit = 0.06, #citizens
@@ -83,7 +81,21 @@ apollo_beta=c(asc = 0,
               sig_bgoalboth = 0,
               sig_bconsplit = 0,
               sig_bprice = 0,
-              sig_asc = 0)
+              sig_asc = 0, 
+              
+              asc_env_awareness_score = 0,
+              bpartimem_env_awareness_score = 0, #member
+
+              asc_sex = 0,
+              bpartimem_sex = 0, #member
+
+              asc_age = 0,
+              bpartimem_age = 0, #member
+
+              asc_educ_years = 0,
+              bpartimem_educ_years = 0 #member
+)
+
 
 ### Specify parameters that should be kept fixed, here = none
 apollo_fixed = c()
@@ -105,17 +117,30 @@ apollo_draws = list(
 apollo_randCoeff = function(apollo_beta, apollo_inputs){
   randcoeff = list()
   
-  randcoeff[["ranborgcit"]] = borgcit + sig_borgcit * draws_borgcit
+  randcoeff[["ranborgcit"]] = borgcit + sig_borgcit * draws_borgcit 
   randcoeff[["ranborgmun"]] = borgmun + sig_borgmun * draws_borgmun
   randcoeff[["ranbpartiinv"]] = bpartiinv + sig_bpartiinv * draws_bpartiinv
-  randcoeff[["ranbpartimem"]] = bpartimem + sig_bpartimem * draws_bpartimem
   randcoeff[["ranbgoalsoc"]] = bgoalsoc + sig_bgoalsoc * draws_bgoalsoc
   randcoeff[["ranbgoaleco"]] = bgoaleco + sig_bgoaleco * draws_bgoaleco
   randcoeff[["ranbgoalboth"]] = bgoalboth + sig_bgoalboth* draws_bgoalboth
   randcoeff[["ranbconsplit"]] = bconsplit + sig_bconsplit* draws_bconsplit
-  randcoeff[["ranasc"]] = asc + sig_asc* draws_asc
+  randcoeff[["ranbpartimem"]] = bpartimem + 
+    bpartimem_env_awareness_score * inter_env_awareness_score+
+    bpartimem_sex           * inter_sex +
+    bpartimem_age           * inter_age+
+    bpartimem_educ_years    * inter_educ_years+
+    sig_bpartimem           * draws_bpartimem 
+  
+  
   randcoeff[["ranbprice"]] = -exp(bprice + sig_bprice*draws_bprice)
   
+  
+  randcoeff[["ranasc"]] = asc +
+    asc_env_awareness_score * inter_env_awareness_score+
+    asc_sex                 * inter_sex +
+    asc_age                 * inter_age+
+    asc_educ_years          * inter_educ_years+
+    sig_asc                 * draws_asc
   return(randcoeff)
 }
 
@@ -137,8 +162,19 @@ apollo_probabilities=function(apollo_beta, apollo_inputs, functionality="estimat
   
   V = list()
   
-  V[['alt1']] = ranborgcit*OrgCit + ranborgmun*OrgMun + ranbpartiinv * PartiInv + ranbpartimem * PartiMem + ranbgoalsoc * GoalSoc + ranbgoaleco * GoalEco + ranbgoalboth * GoalBoth +  ranbconsplit*Con + ranbprice*  Price
-  V[['alt2']] = ranasc
+  V[['alt1']] = 
+    ranborgcit        * OrgCit + 
+    ranborgmun        * OrgMun +
+    ranbpartiinv      * PartiInv + 
+    ranbpartimem      * PartiMem +
+    ranbgoalsoc       * GoalSoc + 
+    ranbgoaleco       * GoalEco + 
+    ranbgoalboth      * GoalBoth +
+    ranbconsplit      * Con + 
+    ranbprice         * Price
+  
+  V[['alt2']] = 
+    ranasc
   
   ### Define settings for MNL model component
   mnl_settings = list(
@@ -155,7 +191,7 @@ apollo_probabilities=function(apollo_beta, apollo_inputs, functionality="estimat
   ### Take product across observation for same individual
   P = apollo_panelProd(P, apollo_inputs, functionality)
   
-  ### Average across inter-individual draws - nur bei Mixed Logit!
+  ### Average across inter-individual draws - only for Mixed Logit
   P = apollo_avgInterDraws(P, apollo_inputs, functionality)
   
   ### Prepare and return outputs of function
@@ -170,85 +206,41 @@ apollo_probabilities=function(apollo_beta, apollo_inputs, functionality="estimat
 
 ### Search for good starting values (preference-space ranges, 100 candidates)
 beta_bounds <- make_searchStart_bounds(apollo_beta, space = "PS")
-apollo_beta = apollo_searchStart(apollo_beta, apollo_fixed,
-                                 apollo_probabilities, apollo_inputs,
-                                 searchStart_settings = list(
-                                   nCandidates   = 100,
-                                   apolloBetaMin = beta_bounds$min,
-                                   apolloBetaMax = beta_bounds$max
-                                 ))
+### Starting values: the best solution of the search, stored in
+### 6_MXL_start_values.R. With RUN_SEARCH = TRUE (0_Main_Script.R), or if
+### no solution is stored for this model, the search runs instead.
+if (!exists("MXL_START_VALUES")) source("6_MXL_start_values.R", encoding = "UTF-8")
+stored <- MXL_START_VALUES[[apollo_control$modelName]]
+if (isTRUE(getOption("dce.run_search", FALSE)) || is.null(stored)) {
+  apollo_beta = apollo_searchStart(apollo_beta, apollo_fixed,
+                                   apollo_probabilities, apollo_inputs,
+                                   searchStart_settings = list(
+                                     nCandidates   = 100,
+                                     apolloBetaMin = beta_bounds$min,
+                                     apolloBetaMax = beta_bounds$max
+                                   ))
+} else {
+  apollo_beta = stored[names(apollo_beta)]
+}
 
-# Estimate model with bfgs algorithm
 model = apollo_estimate(apollo_beta, apollo_fixed,
-                           apollo_probabilities, apollo_inputs,
-                           estimate_settings=list(maxIterations=400,
-                                                  estimationRoutine="bfgs",
-                                                  hessianRoutine="numDeriv"))
+                        apollo_probabilities, apollo_inputs,
+                        estimate_settings=list(maxIterations=400,
+                                               estimationRoutine="bfgs",
+                                               hessianRoutine="numDeriv"))
 
 
-
-# ##################################################################
-# ##  MODEL OUTPUTS                                               ##
-# ##################################################################
+##################################################################
+##  MODEL OUTPUTS                                               ##
+##################################################################
 apollo_saveOutput(model, saveOutput_settings = list(printPVal = 1))
 
-# Create data frame for flextable
-dat <- data.frame(matrix(NA,nrow=48,ncol=2))
-dat[,1] <- c("asc: Keeping electricity provider", "asc",
-             "Investor","1",
-             "Member","2",
-             "Organisator: Citizens","3",
-             "Organisator: Municipality","4",
-             "Social goal","5",
-             "Ecological goal","6",
-             "Social and ecological goal","7",
-             "Split supply","8",
-             "Price","9",
-             "SD asc", "10",
-             "SD Investor","11",
-             "SD Member","12",
-             "SD Organisator: Citizens","13",
-             "SD Organisator: Municipality","14",
-             "SD Social goal","15",
-             "SD Ecological goal","16",
-             "SD Social and ecological goal","17",
-             "SD Split supply","18",
-             "SD Price","19",
-             "Number of Observations","LL(start)","LL(0)","LL(final)","Rho-squared","Adj. Rho-squared","AIC","BIC")
+# Estimate, SE und p-values
+est <- model$estimate
+se  <- model$robse
+p   <- 2 * (1 - pnorm(abs(est / se)))
 
-
-z <- length(model$estimate)
-
-### Extract relevant variables from model output
-est <- c(model$estimate[1:z-1],model$estimate[z]) 
-se  <- c(model$robse[1:(z-1)], model$robse[z])
-p <- 2 * (1 - pnorm(abs(est / se)))
-n <- nrow(database)/10
-param_names <- names(model$apollo_beta)
-
-target_order <- c(
-  # Main parameters
-  "asc", "bpartiinv", "bpartimem", "borgcit", "borgmun",
-  "bgoalsoc", "bgoaleco", "bgoalboth", "bconsplit", "bprice",
-  
-  # Standard deviations (sig_)
-  "sig_asc", "sig_bpartiinv", "sig_bpartimem", "sig_borgcit", "sig_borgmun",
-  "sig_bgoalsoc", "sig_bgoaleco", "sig_bgoalboth", "sig_bconsplit", "sig_bprice"
-)
-
-idx <- match(target_order, param_names)
-
-est_reordered <- est[idx]
-se_reordered <- se[idx]
-p_reordered  <- p[idx]
-
-
-
-
-nParams     <- length(model$apollo_beta)
-nFreeParams <- nParams
-if(!is.null(model$apollo_fixed)) nFreeParams <- nFreeParams - length(model$apollo_fixed)
-
+# Significance notation
 p_wert <- function(p) {
   if (is.na(p)) return("")
   if (p < 0.01) return("**")
@@ -256,100 +248,156 @@ p_wert <- function(p) {
   else return("")
 }
 
+# Legible labels
+pretty_labels <- c(
+  "asc"        = "ASC: Keeping electricity provider",
+  "bpartiinv"  = "Investor",
+  "bpartimem"  = "Member",
+  "borgcit"    = "Organizer: Citizens",
+  "borgmun"    = "Organizer: Municipality",
+  "bgoalsoc"   = "Social goal",
+  "bgoaleco"   = "Ecological goal",
+  "bgoalboth"  = "Soc. & Eco. goal",
+  "bconsplit"  = "Split supply",
+  "bprice"     = "Price",
+  "asc_env_awareness_score" = "ASC × Env. Awareness",
+  "bpartimem_env_awareness_score" = "Member × Env. Awareness",
+  "asc_sex" = "ASC × Female",
+  "bpartimem_sex" = "Member × Female",
+  "asc_age" = "ASC × Age",
+  "bpartimem_age" = "Member × Age",
+  "asc_educ_years" = "ASC × Education",
+  "bpartimem_educ_years" = "Member × Education"
+)
 
-dat[1:(z*2), 2] <- unlist(lapply(1:z, function(j) {
-  if (j == z) {
-    x <- as.numeric(format(est_reordered[j], digits = 2, nsmall = 2))
-    y <- match(TRUE, round(x, 1:20) == x)
-    return(c(paste0(x, p_wert(p_reordered[j])),
-             paste0("(", format(round(se_reordered[j], digits = y), scientific = FALSE), ")")))
+# Separate parameters
+main_params <- names(est)[!grepl("^sig_", names(est))]
+sd_params   <- names(est)[grepl("^sig_", names(est))]
+sd_base_names <- sub("^sig_", "", sd_params)
+
+# Prepare rows
+rows <- list()
+
+for (param in main_params) {
+  label <- pretty_labels[[param]]
+  if (is.null(label)) label <- param
+  
+  est_mean <- est[param]
+  se_mean  <- se[param]
+  p_mean   <- p[param]
+  mean_str <- paste0(sprintf("%.2f", est_mean), p_wert(p_mean))
+  se_str   <- paste0("(", sprintf("%.2f", se_mean), ")")
+  mean_combined <- paste0(mean_str, " ", se_str)
+  
+  # SD value (only if available)
+  if (param %in% sd_base_names) {
+    sd_name <- paste0("sig_", param)
+    est_sd <- est[sd_name]
+    se_sd  <- se[sd_name]
+    p_sd   <- p[sd_name]
+    sd_str <- paste0(sprintf("%.2f", est_sd), p_wert(p_sd))
+    se_sd_str <- paste0("(", sprintf("%.2f", se_sd), ")")
+    sd_combined <- paste0(sd_str, " ", se_sd_str)
   } else {
-    return(c(paste0(round(est_reordered[j], 2), p_wert(p_reordered[j])),
-             paste0("(", round(se_reordered[j], 2), ")")))
+    sd_combined <- ""
   }
-}))
+  
+  rows[[param]] <- c(label, mean_combined, sd_combined)
+}
+
+# Data frame
+result_df <- as.data.frame(do.call(rbind, rows), stringsAsFactors = FALSE)
+colnames(result_df) <- c("Parameter", "Mean", "SD")
+
+# Model statistics
+stats_labels <- c("No. Observations", "No. Respondents", "LL(0)", "LL(final)",
+                  "Adj. Rho-squared", "AIC", "BIC")
+stats_values <- c(
+  model$nObs,
+  model$nObs / 10, # z. B. 10 Antworten pro Person
+  model$LL0[1],
+  model$LLout[1],
+  model$adjRho2_0,
+  model$AIC,
+  model$BIC
+)
+stats_df <- data.frame(
+  Parameter = stats_labels,
+  Mean = format(round(stats_values, 2), scientific = FALSE),
+  SD = ""
+)
+
+# Numer of statistics rows
+n_stats <- nrow(stats_df)
+
+# Combine mean und SD in stats_df (in both columns are filled)
+stats_df$Mean <- ifelse(
+  stats_df$SD != "",
+  paste(stats_df$Mean, stats_df$SD),
+  stats_df$Mean
+)
+stats_df$SD <- ""
 
 
-# dat[1:(z*2), 2] <- unlist(lapply(1:z, function(j) {
-#   if (j == z) {
-#     x <- as.numeric(format(est[j], digits = 2, nsmall = 2))
-#     y <- match(TRUE, round(x, 1:20) == x)
-#     return(c(paste0(x, p_wert(p[j])), paste0("(", format(round(se[j], digits = y), scientific = FALSE), ")")))
-#   } else {
-#     return(c(paste0(round(est[j], 2), p_wert(p[j])), paste0("(", round(se[j], 2), ")")))
-#   }
-# }))
+param_order <- c(
+  "asc","bpartiinv", "bpartimem", 
+  "borgcit", "borgmun",
+  "bgoalsoc", "bgoaleco", "bgoalboth",
+  "bconsplit",
+  "bprice", 
+  "asc_env_awareness_score", "bpartimem_env_awareness_score",
+  "asc_sex", "bpartimem_sex",
+  "asc_age", "bpartimem_age",
+  "asc_educ_years", "bpartimem_educ_years"
+)
 
-dat[z*2+1,2] <- n
-dat[z*2+2,2] <- round(model$LLStart,4)
-dat[z*2+3,2] <- round(model$LL0,4)
-dat[z*2+4,2] <- round(model$LLout,4)
-dat[z*2+5,2] <- round(1-(model$maximum/model$LL0),4)
-dat[z*2+6,2] <- round(1-((model$maximum-nFreeParams)/model$LL0),4)
-dat[z*2+7,2] <- round(-2*model$maximum + 2*nFreeParams,2)
-dat[z*2+8,2] <- round(-2*model$maximum + nFreeParams*log(model$nObs),2)
+param_order <- param_order[param_order %in% rownames(result_df)]
 
+result_df <- result_df[param_order, ]
 
-####################################################################
-##  Flextable                                                     ##
-####################################################################
+# New final data frame
+result_df_final <- rbind(result_df, stats_df)
 
-### Header and footer settings
+# Header information
+my_header <- data.frame(
+  col_keys = colnames(result_df_final),
+  line1 = c("Mixed Logit Model - Preference Space"),
+  line2 = c("Parameter", "Mean (SE)", "SD (SE)"),
+  stringsAsFactors = FALSE
+)
 
-my_header <- data.frame(col_keys=colnames(dat),
-                        line1 = c("Model Results - Mixed logit - Preference Space"),
-                        line2 = c("Attribute","Preference"),
-                        stringsAsFactors=FALSE)
+# Footer
+my_footer <- data.frame(
+  col_keys = colnames(result_df_final),
+  line1 = c("** p<0.01, * p<0.05"),
+  line2 = c("Reference: Customer at municipal utility with full supply and no statutory goal"),
+  stringsAsFactors = FALSE
+)
 
-my_footer <- data.frame(col_keys=colnames(dat),
-                        line1 = c("** 0.01 , * 0.05"),
-                        line2 = c("Reference contract: Only customer at a municipal utility with full supply and no additional goals"),
-                        stringsAsFactors=FALSE)
-
-### Graphical formatting of Flextable
-flex <- flextable(dat) %>%
+flex <- flextable(result_df_final) %>%
   theme_booktabs() %>%
-  set_header_df(mapping = my_header, key="col_keys") %>%
-  set_footer_df(mapping = my_footer, key="col_keys") %>%
-  border(i=2,border.bottom=fp_border(color="black",width=1),part="header") %>%
-  fontsize(size=12,i=1,part="header") %>%
-  align(align="center",part="header") %>%
-  align(align="right",part="footer") %>%
-  border(border.top=fp_border(color="black",width=1),part="footer") %>%
-  border(i=21,border.top=fp_border(width=1)) %>%
-  border(i=41,border.top=fp_border(width=1)) %>%
-  bold(j=1,part="body") %>%
-  bold(i=1:2,part="header") %>%
-  font(fontname="Calibri",part="body") %>%
-  font(fontname="Calibri",part="header") %>%
-  merge_h(part="footer") %>%
-  merge_at(i =1:2,j=1,part="body") %>%
-  merge_at(i =3:4,j=1,part="body") %>%
-  merge_at(i =5:6,j=1,part="body") %>%
-  merge_at(i =7:8,j=1,part="body") %>%
-  merge_at(i =9:10,j=1,part="body") %>%
-  merge_at(i =11:12,j=1,part="body") %>%
-  merge_at(i =13:14,j=1,part="body") %>%
-  merge_at(i =15:16,j=1,part="body") %>%
-  merge_at(i =17:18,j=1,part="body") %>%
-  merge_at(i =19:20,j=1,part="body") %>%
-  merge_at(i =21:22,j=1,part="body") %>%
-  merge_at(i =23:24,j=1,part="body") %>%
-  merge_at(i =25:26,j=1,part="body") %>%
-  merge_at(i =27:28,j=1,part="body") %>%
-  merge_at(i =29:30,j=1,part="body") %>%
-  merge_at(i =31:32,j=1,part="body") %>%
-  merge_at(i =33:34,j=1,part="body") %>%
-  merge_at(i =35:36,j=1,part="body") %>%
-  merge_at(i =37:38,j=1,part="body") %>%
-  merge_at(i =39:40,j=1,part="body") %>%
-  merge_at(i=1,part="header") %>%
-  width(j=2,width=1.2) %>%
-  width(j=1,width=4)
+  set_header_df(mapping = my_header, key = "col_keys") %>%
+  set_footer_df(mapping = my_footer, key = "col_keys") %>%
+  border(i = 2, border.bottom = fp_border(color = "black", width = 1), part = "header") %>%
+  fontsize(size = 12, i = 1, part = "header") %>%
+  align(align = "center", part = "header") %>%
+  align(j = c("Mean", "SD"), align = "right", part = "body") %>%
+  align(align = "right", part = "footer") %>%
+  border(border.top = fp_border(color = "black", width = 1), part = "footer") %>%
+  bold(j = 1, part = "body") %>%
+  bold(i = 1:2, part = "header") %>%
+  font(fontname = "Calibri", part = "all") %>%
+  merge_h(part = "footer") %>%
+  merge_at(i = 1, j = 1:3, part = "header") %>%
+  merge_h(i = (nrow(result_df_final) - n_stats + 1):nrow(result_df_final), part = "body") %>%
+  autofit()
+
 
 #----------------------------------------------
 # Export Table
 #----------------------------------------------
+
+### Preview in R (interactive sessions only):
 
 if (interactive()) {
   print(flex)
@@ -357,5 +405,4 @@ if (interactive()) {
 output_dir <- model$apollo_control$outputDirectory
 fname <- paste0(output_dir, "/", apollo_control$modelName, ".docx")
 save_as_docx(flex, path = fname)#, pr_section = set_prop)
-
 

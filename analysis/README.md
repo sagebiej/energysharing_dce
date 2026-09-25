@@ -31,11 +31,17 @@ reached rarely.
 
 ### Mixed logit models and starting values
 
-Each mixed logit model searches for its starting values with `apollo_searchStart()` over 100
-candidate sets. `6_MXL_searchStart_ranges.R` sets the search ranges by parameter type and by
-model space, because the parameters live on different scales (utility units against money).
-For example the mean taste parameters use [-0.6, 0.8] in preference space but [-1.0, 2.0] in
-WTP space. The models are estimated with 1,000 draws.
+The mixed logit models work like the latent class models. Their starting values come from a
+search with `apollo_searchStart()` over 100 candidate sets, which took 8 to 21 hours per
+model on 25 cores. `6_MXL_start_values.R` stores the best solution of each search, and with
+`RUN_SEARCH = FALSE` the models are estimated from these values, in 20 to 55 minutes per model
+on 25 cores. With `RUN_SEARCH = TRUE` the search is repeated. A model without a stored
+solution runs the search in either case.
+
+`6_MXL_searchStart_ranges.R` sets the search ranges by parameter type and by model space,
+because the parameters live on different scales (utility units against money). For example
+the mean taste parameters use [-0.6, 0.8] in preference space but [-1.0, 2.0] in WTP space.
+The models are estimated with 1,000 draws.
 
 ## Scripts
 
@@ -52,6 +58,7 @@ WTP space. The models are estimated with 1,000 draws.
 | `5_CL_Table_A8.R` | Table A.8 from the three models in WTP space, saved to `Hauptstudie/Estimation_results/CL/WTP_Space/TableA8_conditional_logit.docx` | Table A.8 |
 | `6_MXL_*.R`, `7_MXL_*.R` | mixed logit, preference and WTP space | Table A.7 |
 | `6_MXL_searchStart_ranges.R` | search ranges for the starting values of the mixed logit models | |
+| `6_MXL_start_values.R` | starting values of the mixed logit models, the best solutions of the search | |
 | `8_LCL_model_definition.R` | shared definition of all latent class models | |
 | `8_LCL_start_values.R` | starting values and search record of the latent class models | |
 | `9_LCL_multistart_search.R` | multi-start search (only with `RUN_SEARCH = TRUE`) | A.3 |

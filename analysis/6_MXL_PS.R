@@ -164,13 +164,22 @@ apollo_probabilities=function(apollo_beta, apollo_inputs, functionality="estimat
 
 ### Search for good starting values (preference-space ranges, 100 candidates)
 beta_bounds <- make_searchStart_bounds(apollo_beta, space = "PS")
-apollo_beta = apollo_searchStart(apollo_beta, apollo_fixed,
-                                 apollo_probabilities, apollo_inputs,
-                                 searchStart_settings = list(
-                                   nCandidates   = 100,
-                                   apolloBetaMin = beta_bounds$min,
-                                   apolloBetaMax = beta_bounds$max
-                                 ))
+### Starting values: the best solution of the search, stored in
+### 6_MXL_start_values.R. With RUN_SEARCH = TRUE (0_Main_Script.R), or if
+### no solution is stored for this model, the search runs instead.
+if (!exists("MXL_START_VALUES")) source("6_MXL_start_values.R", encoding = "UTF-8")
+stored <- MXL_START_VALUES[[apollo_control$modelName]]
+if (isTRUE(getOption("dce.run_search", FALSE)) || is.null(stored)) {
+  apollo_beta = apollo_searchStart(apollo_beta, apollo_fixed,
+                                   apollo_probabilities, apollo_inputs,
+                                   searchStart_settings = list(
+                                     nCandidates   = 100,
+                                     apolloBetaMin = beta_bounds$min,
+                                     apolloBetaMax = beta_bounds$max
+                                   ))
+} else {
+  apollo_beta = stored[names(apollo_beta)]
+}
 
 # Estimate model with bfgs algorithm
 
