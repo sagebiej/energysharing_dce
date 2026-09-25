@@ -7,7 +7,8 @@
 ### Datum         : 24.09.2026                                       ###
 ########################################################################
 ###
-### Run with this analysis folder as the working directory.
+### The script sets the working directory to its own folder, so it can be
+### run from anywhere, with Rscript or from RStudio.
 ### The raw data are downloaded from Zenodo by 1_Data_Procession.R (doi 10.5281/zenodo.22829058).
 ### No estimated model is needed: all models are estimated from scratch.
 ###
@@ -18,6 +19,21 @@
 
 # Clear environment
 rm(list=ls())
+
+# Work in the folder of this script, wherever R was started.
+# source() stores the path in ofile; Rscript passes it as --file=, with
+# spaces written as ~+~; RStudio knows it when the script is run line by line.
+script <- tryCatch(sys.frame(1)$ofile, error = function(e) NULL)
+if (is.null(script)) {
+  script <- sub("^--file=", "", grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE))
+  script <- gsub("~+~", " ", script, fixed = TRUE)
+}
+if (length(script) == 0 && requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
+  script <- rstudioapi::getSourceEditorContext()$path
+}
+# file.exists is FALSE after source(chdir = TRUE), which is already in the folder
+if (length(script) == 1 && nzchar(script) && file.exists(script)) setwd(dirname(normalizePath(script)))
+
 plot.new()
 
 ########################################################################

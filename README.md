@@ -27,7 +27,8 @@ We preregistered the study on OSF, https://doi.org/10.17605/OSF.IO/95BE2.
 | `run_all.R` | Runs the 3 steps above in order |
 
 Install `spdesign`, `simulateDCE`, `quarto`, `dplyr`, `kableExtra` and `gridExtra`, then run
-`run_all.R` or the scripts one after another. The scripts create the folders `design_final`
+`design/run_all.R`, which finds its own folder. To run the scripts one after another
+instead, start R in `design/`. The scripts create the folders `design_final`
 and `sim_results` themselves.
 
 The design script takes about 15 minutes. The simulations take several hours and produce
@@ -57,7 +58,7 @@ that the design recovers all parameters.
 ## analysis/
 
 Prepares the survey data and estimates the conditional logit, mixed logit and latent class
-models. Set the working directory to `analysis/` and run `0_Main_Script.R`. See
+models. Run `analysis/0_Main_Script.R`, which finds its own folder. See
 `analysis/README.md` for the script by script description, the output folders, and how the
 latent class models handle starting values and local optima.
 

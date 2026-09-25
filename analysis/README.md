@@ -5,8 +5,8 @@ experiment, Utilities Policy, revised version).
 
 ## How to reproduce the results
 
-1. Set the working directory to this `analysis/` folder.
-2. Run `0_Main_Script.R`.
+Run `0_Main_Script.R`, with `Rscript analysis/0_Main_Script.R` or from RStudio. It sets
+the working directory to its own folder, so it does not matter where R was started.
 
 The raw data (`Results_Survey_Final_Sample.xlsx`) are downloaded from Zenodo by
 `1_Data_Procession.R`, https://doi.org/10.5281/zenodo.22829058. No estimated model is needed:
