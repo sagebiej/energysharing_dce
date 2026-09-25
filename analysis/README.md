@@ -29,6 +29,14 @@ The search is reproducible for a given seed, number of cores and Apollo version.
 machine it may reach the same optima through different starts, or miss an optimum that is
 reached rarely.
 
+### Mixed logit models and starting values
+
+Each mixed logit model searches for its starting values with `apollo_searchStart()` over 100
+candidate sets. `6_MXL_searchStart_ranges.R` sets the search ranges by parameter type and by
+model space, because the parameters live on different scales (utility units against money).
+For example the mean taste parameters use [-0.6, 0.8] in preference space but [-1.0, 2.0] in
+WTP space. The models are estimated with 1,000 draws.
+
 ## Scripts
 
 | Script | Content | Paper |
@@ -42,6 +50,7 @@ reached rarely.
 | `3_Status_Quo_choosers.R` | reasons for keeping the status quo | Table A.9 |
 | `4_CL_*.R`, `5_CL_*.R` | conditional logit, preference and WTP space | Table A.8 |
 | `6_MXL_*.R`, `7_MXL_*.R` | mixed logit, preference and WTP space | Table A.7 |
+| `6_MXL_searchStart_ranges.R` | search ranges for the starting values of the mixed logit models | |
 | `8_LCL_model_definition.R` | shared definition of all latent class models | |
 | `8_LCL_start_values.R` | starting values and search record of the latent class models | |
 | `9_LCL_multistart_search.R` | multi-start search (only with `RUN_SEARCH = TRUE`) | A.3 |
@@ -49,7 +58,6 @@ reached rarely.
 | `11_LCL_Table5_tests.R` | reported model: Table 5, Wald tests, hypothesis tests, WTP sums | Table 5, Table 6 (`hypothesis_tests.csv`) |
 | `12_LCL_class_profiles.R` | class assignment, separation and composition | Tables A.4 to A.6 |
 | `13_Table_A2_class_enumeration.R` | selection of the number of classes | Table A.2 |
-| `run_data_preparation.R`, `Scripts/models/mxl/` | mixed logit models on a SLURM cluster (see `Scripts/models/mxl/README.md`) | |
 
 ## Output
 

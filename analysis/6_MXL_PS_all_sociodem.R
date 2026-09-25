@@ -11,20 +11,19 @@ library(apollo)
 
 # Search-range helper for apollo_searchStart() (defines make_searchStart_bounds()).
 if (!exists("make_searchStart_bounds")) {
-  source("Scripts/models/mxl/searchStart_ranges.R", encoding = "UTF-8")
+  source("6_MXL_searchStart_ranges.R", encoding = "UTF-8")
 }
 
 n_draws <- 1000
-# Number of cores: respect a value set by the calling driver (e.g. SLURM),
-# otherwise use all but one of the locally available cores.
-if (!exists("n_cores")) n_cores <- max(1, as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", parallel::detectCores())) - 1)  # on a cluster, the cores SLURM allocated
+# Number of cores: all but one. Under a job scheduler only the allocated
+# cores count, because detectCores() sees every core of the machine.
+n_cores <- max(1, as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", parallel::detectCores())) - 1)
 
 # Initialize model
 apollo_initialise()
 
-### Output directory: use the server-provided results path when available,
-### otherwise fall back to the local project folder.
-out_base <- if (exists("results_path") && nzchar(results_path)) results_path else "Hauptstudie/Estimation_results"
+### Output directory
+out_base <- "Hauptstudie/Estimation_results"
 output_dir <- file.path(out_base, "MXL", "Preference_Space")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
