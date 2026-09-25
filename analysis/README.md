@@ -48,7 +48,8 @@ WTP space. The models are estimated with 1,000 draws.
 | `3_Multicollinearity_Check.R` | correlation of socio-demographic variables, saved to `Hauptstudie/Paper/Table_A3_correlations.docx` | Table A.3 |
 | `3_Soziodem.R` | sample description | Table 4 |
 | `3_Status_Quo_choosers.R` | reasons for keeping the status quo | Table A.9 |
-| `4_CL_*.R`, `5_CL_*.R` | conditional logit, preference and WTP space | Table A.8 |
+| `4_CL_*.R`, `5_CL_*.R` | conditional logit, preference and WTP space | |
+| `5_CL_Table_A8.R` | Table A.8 from the three models in WTP space, saved to `Hauptstudie/Estimation_results/CL/WTP_Space/TableA8_conditional_logit.docx` | Table A.8 |
 | `6_MXL_*.R`, `7_MXL_*.R` | mixed logit, preference and WTP space | Table A.7 |
 | `6_MXL_searchStart_ranges.R` | search ranges for the starting values of the mixed logit models | |
 | `8_LCL_model_definition.R` | shared definition of all latent class models | |

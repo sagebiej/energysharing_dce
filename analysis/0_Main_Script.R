@@ -121,6 +121,8 @@ source("4_CL_PS_New_Target_Group_all_sociodem.R",encoding="UTF-8")
 source("5_CL_WTP.R",encoding="UTF-8")
 source("5_CL_WTP_all_sociodem.R",encoding="UTF-8")
 source("5_CL_WTP_New_Target_Group_all_sociodem.R",encoding="UTF-8")
+#Table A.8 from the three models in WTP space
+source("5_CL_Table_A8.R",encoding="UTF-8")
 
 ########################################################################
 ### Mixed Logit Models (Table A.7)                                   ###
