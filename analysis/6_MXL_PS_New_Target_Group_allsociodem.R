@@ -20,7 +20,7 @@ if (!exists("make_searchStart_bounds")) {
 n_draws <- 1000
 # Number of cores: respect a value set by the calling driver (e.g. SLURM),
 # otherwise use all but one of the locally available cores.
-if (!exists("n_cores")) n_cores <- max(1, parallel::detectCores() - 1)
+if (!exists("n_cores")) n_cores <- max(1, as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", parallel::detectCores())) - 1)  # on a cluster, the cores SLURM allocated
 
 # Initialize model
 apollo_initialise()
