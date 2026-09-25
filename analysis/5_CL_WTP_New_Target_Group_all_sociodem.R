@@ -148,7 +148,7 @@ apollo_probabilities=function(apollo_beta, apollo_inputs, functionality="estimat
 ####################################################################
 
 model = apollo_estimate(apollo_beta, apollo_fixed,
-                        apollo_probabilities, apollo_inputs, estimate_settings=list(estimationRoutine = "bfgs", scaleAfterConvergence = FALSE,  hessianRoutine="numDeriv", scaleHessian ="FALSE") )
+                        apollo_probabilities, apollo_inputs, estimate_settings=list(estimationRoutine = "bfgs", scaleAfterConvergence = FALSE,  hessianRoutine="numDeriv", scaleHessian = FALSE) )
 
 
 ####################################################################
