@@ -18,7 +18,6 @@ apollo_control= list (
   modelDescr ="Conditional Logit in preference space with all sociodemographics",
   indivID = "i_NUMBER",
   mixing = FALSE, # True waere Mixed Logit
-  robustHC = TRUE,
   outputDirectory = "Hauptstudie/Estimation_results/CL/WTP_Space/"
 )
 
