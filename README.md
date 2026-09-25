@@ -56,11 +56,18 @@ that the design recovers all parameters.
 
 ## analysis/
 
-TODO: fill in once the analysis code is final.
+Prepares the survey data and estimates the conditional logit, mixed logit and latent class
+models. Set the working directory to `analysis/` and run `0_Main_Script.R`. See
+`analysis/README.md` for the script by script description, the output folders, and how the
+latent class models handle starting values and local optima.
 
 ## Versions
 
-We ran the design and the simulations in March and April 2025 with R [version], `spdesign`
-[version] and `simulateDCE` [version].
+We ran the design and the simulations on 1 March 2025 with R 4.4.2, `spdesign` [version] and
+`simulateDCE` [version].
 
-TODO: fill in the 3 versions, and the versions used for the analysis.
+We ran the analysis with R 4.6.0 and `apollo` 0.3.8 on Windows.
+
+TODO: fill in the `spdesign` and `simulateDCE` versions used in March 2025. The R version
+comes from the header of `design_final.RDS`; the packages record no version. The copy of
+`spdesign` installed here now is 0.0.6, which is not evidence of what ran then.
