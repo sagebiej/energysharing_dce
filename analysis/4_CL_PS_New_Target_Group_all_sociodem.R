@@ -71,16 +71,7 @@ apollo_beta=c(asc = 0,
               bpartimem_age = 0, #member
               
               asc_educ_years = 0,
-              bpartimem_educ_years = 0, #member
-              
-              asc_lowincome = 0,
-              bpartimem_lowincome = 0, #member
-              
-              asc_highincome = 0,
-              bpartimem_highincome = 0, #low income
-              
-              asc_mfh_or_tenant = 0,
-              bpartimem_mfh_or_tenant = 0)
+              bpartimem_educ_years = 0) #member
 
 ### Don't keep any parameters fixed
 apollo_fixed = c()
@@ -120,20 +111,14 @@ apollo_probabilities=function(apollo_beta, apollo_inputs, functionality="estimat
     bpartimem_env_awareness_score   * PartiMem   * inter_env_awareness_score +
     bpartimem_sex           * PartiMem   * inter_sex +
     bpartimem_age           * PartiMem   * inter_age +
-    bpartimem_educ_years    * PartiMem   * inter_educ_years +
-    bpartimem_highincome    * PartiMem   * inter_highincome +
-    bpartimem_lowincome     * PartiMem   * inter_lowincome +
-    bpartimem_mfh_or_tenant * PartiMem   * inter_mfh_or_tenant
+    bpartimem_educ_years    * PartiMem   * inter_educ_years
   
   V[['alt2']] = 
     asc +
     asc_env_awareness_score * inter_env_awareness_score +
     asc_sex                 * inter_sex +
     asc_age                 * inter_age +
-    asc_educ_years          * inter_educ_years +
-    asc_highincome          * inter_highincome +
-    asc_lowincome           * inter_lowincome +
-    asc_mfh_or_tenant       * inter_mfh_or_tenant
+    asc_educ_years          * inter_educ_years
   
   ### Define settings for MNL model component
   mnl_settings = list(
@@ -160,7 +145,7 @@ apollo_probabilities=function(apollo_beta, apollo_inputs, functionality="estimat
 ####################################################################
 
 model = apollo_estimate(apollo_beta, apollo_fixed,
-                        apollo_probabilities, apollo_inputs, estimate_settings=list(estimationRoutine = "bfgs", scaleAfterConvergence = FALSE,  hessianRoutine="maxLik", scaleHessian = FALSE ))
+                        apollo_probabilities, apollo_inputs, estimate_settings=list(estimationRoutine = "bfgs", scaleAfterConvergence = FALSE,  hessianRoutine="analytic", scaleHessian = FALSE ))
 
 
 ####################################################################
@@ -200,13 +185,7 @@ pretty_labels <- c(
   "asc_age" = "ASC × Age",
   "bpartimem_age" = "Member × Age",
   "asc_educ_years" = "ASC × Education",
-  "bpartimem_educ_years" = "Member × Education",
-  "asc_lowincome" = "ASC × Low Income",
-  "bpartimem_lowincome" = "Member × Low Income",
-  "asc_highincome" = "ASC × High Income",
-  "bpartimem_highincome" = "Member × High Income",
-  "asc_mfh_or_tenant" = "ASC × Tenant/MFH",
-  "bpartimem_mfh_or_tenant" = "Member × Tenant/MFH"
+  "bpartimem_educ_years" = "Member × Education"
 )
 
 
@@ -243,10 +222,7 @@ param_order <- c(
   "asc_env_awareness_score", "bpartimem_env_awareness_score",
   "asc_sex", "bpartimem_sex",
   "asc_age", "bpartimem_age",
-  "asc_educ_years", "bpartimem_educ_years",
-  "asc_lowincome", "bpartimem_lowincome",
-  "asc_highincome", "bpartimem_highincome",
-  "asc_mfh_or_tenant", "bpartimem_mfh_or_tenant"
+  "asc_educ_years", "bpartimem_educ_years"
 )
 
 param_order <- param_order[param_order %in% rownames(result_df)]
