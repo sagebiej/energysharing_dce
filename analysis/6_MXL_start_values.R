@@ -4,7 +4,9 @@
 ###               Each vector is the best solution of an            ###
 ###               apollo_searchStart() search over 100 candidate    ###
 ###               sets of starting values (ranges in                ###
-###               6_MXL_searchStart_ranges.R), run in June 2026.    ###
+###               6_MXL_searchStart_ranges.R), run in June 2026;    ###
+###               for MXL_PS_Subsample_New_Target_Group in          ###
+###               September 2026, after its specification changed.  ###
 ###               The mixed logit scripts estimate from these       ###
 ###               values when RUN_SEARCH = FALSE (0_Main_Script.R)  ###
 ###               and repeat the search when RUN_SEARCH = TRUE.     ###
@@ -166,10 +168,37 @@ MXL_START_VALUES <- list(
     bpartimem_age                 = 0.0102605808206903,
     asc_educ_years                = -0.390390652666685,
     bpartimem_educ_years          = 0.0152722265471545
-  )
+  ),
 
-  # 6_MXL_PS_New_Target_Group_allsociodem.R (MXL_PS_Subsample_New_Target_Group)
-  # has no entry: its specification changed in September 2026, when it got
-  # the same socio-demographic interactions as the WTP space model, so its
-  # search still has to be run and its best solution added here.
+  # 6_MXL_PS_New_Target_Group_allsociodem.R
+  MXL_PS_Subsample_New_Target_Group = c(
+    asc                           = 0.118416464272927,
+    borgcit                       = 0.368034375522576,
+    borgmun                       = 0.307764454475987,
+    bpartiinv                     = 0.232498508795125,
+    bpartimem                     = 0.297531568019033,
+    bgoalsoc                      = 0.690662682734008,
+    bgoaleco                      = 0.766555135586412,
+    bgoalboth                     = 0.881868546526893,
+    bconsplit                     = -0.430219134239337,
+    bprice                        = -0.738722430881822,
+    sig_borgcit                   = 0.92882026396844,
+    sig_borgmun                   = -0.645938944317794,
+    sig_bpartiinv                 = -0.399192675421567,
+    sig_bpartimem                 = -0.020577855935946,
+    sig_bgoalsoc                  = -0.285350976725357,
+    sig_bgoaleco                  = -0.242534273649686,
+    sig_bgoalboth                 = 0.137397352345915,
+    sig_bconsplit                 = 0.743411276457165,
+    sig_bprice                    = 1.08476278823894,
+    sig_asc                       = 3.67360993981066,
+    asc_env_awareness_score       = -0.193233008297175,
+    bpartimem_env_awareness_score = -0.00566105652615794,
+    asc_sex                       = 0.643327073565721,
+    bpartimem_sex                 = -0.0773648935162776,
+    asc_age                       = 0.0481907323701647,
+    bpartimem_age                 = 0.000332420312287388,
+    asc_educ_years                = -0.188251961957932,
+    bpartimem_educ_years          = 0.0142140197779785
+  )
 )

@@ -197,6 +197,10 @@ apollo_dir <- function(path) {
 lcl_inputs <- function(K, covariates = TRUE, modelName, modelDescr,
                        outputDirectory, beta, nCores = 4, noValidation = FALSE) {
   build_lcl(K)
+  # A mixed logit model estimated earlier in the same session leaves its
+  # draws and random coefficients behind, and apollo would use them
+  rm(list = intersect(c("apollo_draws", "apollo_randCoeff"), ls(globalenv())),
+     envir = globalenv())
   assign("apollo_beta",  beta, envir = globalenv())
   assign("apollo_fixed", fixed_params(K, covariates), envir = globalenv())
   assign("apollo_control", list(
