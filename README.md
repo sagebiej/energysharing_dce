@@ -64,11 +64,8 @@ latent class models handle starting values and local optima.
 
 ## Versions
 
-We ran the design and the simulations on 1 March 2025 with R 4.4.2, `spdesign` [version] and
-`simulateDCE` [version].
+We generated the design on 1 March 2025 and ran the simulations in April 2025, with R 4.4.2.
+The design code runs with the current CRAN versions, `spdesign` 0.0.6 and `simulateDCE` 0.3.2.
 
-We ran the analysis with R 4.6.0 and `apollo` 0.3.8 on Windows.
-
-TODO: fill in the `spdesign` and `simulateDCE` versions used in March 2025. The R version
-comes from the header of `design_final.RDS`; the packages record no version. The copy of
-`spdesign` installed here now is 0.0.6, which is not evidence of what ran then.
+We ran the analysis with R 4.6.0 and `apollo` 0.3.8 on Windows. A fresh clone reproduces the
+reported estimates and log-likelihoods with R 4.4.2 and `apollo` 0.3.9 on Linux.
