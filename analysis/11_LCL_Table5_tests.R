@@ -6,7 +6,8 @@
 ###               1 diagnostics, class shares, class order          ###
 ###               2 plain-text model output, tidy estimates         ###
 ###               3 joint Wald tests on class membership,           ###
-###                 hypothesis tests (Table 6), WTP sums per class  ###
+###                 hypothesis tests (Table 6), WTP sums per class, ###
+###                 member vs. investor test                        ###
 ###               4 Table 5 with 95% confidence intervals           ###
 ###               Nothing is estimated; the model comes from        ###
 ###               10_LCL_WTP_K_Classes.R.                           ###
@@ -16,6 +17,7 @@
 ### Output      : Table5_LCL_WTP_sociodem.csv / .docx,              ###
 ###               joint_tests_membership.csv, hypothesis_tests.csv, ###
 ###               package_wtp.csv, class_order.csv,                 ###
+###               member_vs_investor.csv,                           ###
 ###               estimates_tidy.csv, lc5cl_WTP_sociodem_output_    ###
 ###               plain.txt                                         ###
 ### Date        : 24.09.2026                                        ###
@@ -424,6 +426,33 @@ cat("\n=== Sum of significant positive attribute WTP per class (pp of monthly co
 print(transform(pkg, wtp_pp = round(wtp_pp, 2), ci_lo = round(ci_lo, 2),
                 ci_hi = round(ci_hi, 2), eur_per_year = round(eur_per_year)), row.names = FALSE)
 write.csv(pkg, file.path(OUT_DIR, "package_wtp.csv"), row.names = FALSE)
+
+## -------------------------------------------------------------- ##
+## 3d Member vs. investor per class ##
+## -------------------------------------------------------------- ##
+# Investors and members faced the same nominal financial terms
+# (EUR 100, about EUR 3 per year). The difference of the two WTP
+# parameters therefore shows whether membership (co-determination,
+# consumption from own installations) is valued beyond investing.
+# Wald test of H0: wtp_member = wtp_investor, robust covariance.
+mi <- do.call(rbind, lapply(CLS, function(s) {
+  a  <- paste0("bpartimem_", s)
+  b  <- paste0("bpartiinv_", s)
+  d  <- model$estimate[[a]] - model$estimate[[b]]
+  se <- sqrt(V[a, a] + V[b, b] - 2 * V[a, b])
+  data.frame(class_paper = match(s, ord), class_est = s,
+             member_pp = model$estimate[[a]], investor_pp = model$estimate[[b]],
+             diff_pp = d, se = se, ci_lo = d - 1.96 * se, ci_hi = d + 1.96 * se,
+             wald_chi2 = (d / se)^2, p_value = 2 * (1 - pnorm(abs(d / se))),
+             stringsAsFactors = FALSE)
+}))
+mi <- mi[order(mi$class_paper), ]
+cat("\n=== Member vs. investor per class (pp of monthly cost, robust SE) ===\n")
+print(transform(mi, member_pp = round(member_pp, 2), investor_pp = round(investor_pp, 2),
+                diff_pp = round(diff_pp, 2), se = round(se, 2), ci_lo = round(ci_lo, 2),
+                ci_hi = round(ci_hi, 2), wald_chi2 = round(wald_chi2, 2),
+                p_value = signif(p_value, 3)), row.names = FALSE)
+write.csv(mi, file.path(OUT_DIR, "member_vs_investor.csv"), row.names = FALSE)
 
 ## -------------------------------------------------------------- ##
 ## 4  Table 5                                                      ##

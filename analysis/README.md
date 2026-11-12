@@ -63,7 +63,7 @@ The models are estimated with 1,000 draws.
 | `8_LCL_start_values.R` | starting values and search record of the latent class models | |
 | `9_LCL_multistart_search.R` | multi-start search (only with `RUN_SEARCH = TRUE`) | A.3 |
 | `10_LCL_WTP_K_Classes.R` | estimation of all latent class models: 2 to 7 classes, with and without socio-demographics (five classes with socio-demographics = reported model) | |
-| `11_LCL_Table5_tests.R` | reported model: Table 5, Wald tests, hypothesis tests, WTP sums | Table 5, Table 6 (`hypothesis_tests.csv`) |
+| `11_LCL_Table5_tests.R` | reported model: Table 5, Wald tests, hypothesis tests, WTP sums, member vs. investor test (`member_vs_investor.csv`) | Table 5, Table 6 (`hypothesis_tests.csv`) |
 | `12_LCL_class_profiles.R` | class assignment, separation and composition | Tables A.4 to A.6 |
 | `13_Table_A2_class_enumeration.R` | selection of the number of classes | Table A.2 |
 
