@@ -49,7 +49,8 @@ Labels <- c(
   "No response (MFH resident)"
 )
 
-Anzahl <- c(
+# Counts per row of Table 4 (df_long has ten rows per respondent)
+count_sociodem <- function(df) c(
   sum(df$S1 == 2, na.rm = TRUE)/10,             # Female
   sum(df$S1 == 1, na.rm = TRUE)/10,             # Male
   sum(is.na(df$S1))/10 +sum(df$S1 == 3, na.rm = TRUE)/10, # No response and gender = diverse
@@ -77,6 +78,13 @@ Anzahl <- c(
   sum(df$mfh == 1, na.rm = TRUE)/10,            # MFH residents
   sum(is.na(df$mfh))/10                         # No response (MFH resident)
 )
+
+Anzahl <- count_sociodem(df)
+
+# Analytical sample (2,199 respondents, see 1_Data_Procession.R)
+df_analytical <- df %>% filter(analytical_sample)
+respondents_count_analytical <- nrow(df_analytical) / 10
+Anzahl_analytical <- count_sociodem(df_analytical)
 
 
 #study population based on "Ergebnisdaten_XYZ_Netto-Grundgesamtheit_sozio Daten_(n=5.796).xlsx" 
@@ -125,12 +133,16 @@ demotab <- data.frame(
   Variable = Labels,
   Respondents  = Anzahl,
   "Respondents rel." = Prozent,
+  "Analytical sample" = Anzahl_analytical,
+  "Analytical sample rel." = paste0(round(100 * Anzahl_analytical / respondents_count_analytical, 1), "%"),
     "Study population" = study_population, 
   "Study population rel." =study_population_rel,
   "German average" = German_average
 )
 
 print(demotab)
+write.csv(demotab, "Hauptstudie/Paper/Table_4_sociodemographics.csv",
+          row.names = FALSE, fileEncoding = "UTF-8")
 
 
 # Calculate derived variables

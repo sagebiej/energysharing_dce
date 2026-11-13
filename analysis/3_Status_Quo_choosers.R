@@ -5,8 +5,11 @@
 ### Date          : 01.04.2025                                     ###
 ######################################################################
 
-# Load data
-df <- df_long
+# Load data: analytical sample (see 1_Data_Procession.R), one row per
+# respondent, so that all counts are numbers of respondents
+df <- df_long %>%
+  filter(analytical_sample) %>%
+  distinct(i_NUMBER, .keep_all = TRUE)
 
 # 1. Define the columns corresponding to the "status quo" reasons
 grund_vars <- paste0("F7.2A", 1:12)
@@ -176,5 +179,7 @@ results_summary <- rbind(
 cat("Summary of total reasons among all respondents who chose status quo at least 7 times:\n")
 print(results_summary, row.names = FALSE)
 
-
-
+# Table A.9
+dir.create("Hauptstudie/Paper", showWarnings = FALSE, recursive = TRUE)
+write.csv(results_summary, "Hauptstudie/Paper/Table_A9_status_quo_reasons.csv",
+          row.names = FALSE, fileEncoding = "UTF-8")

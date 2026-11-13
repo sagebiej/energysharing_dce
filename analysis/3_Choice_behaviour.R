@@ -6,8 +6,16 @@
 ### Date          : 01.04.2025                                        ###
 #########################################################################
 
-# Load data
-df <- df_long
+# Load data: analytical sample (2,199 respondents with complete
+# socio-demographic information, see 1_Data_Procession.R), so that
+# Section 4.1 and the latent class models refer to the same respondents
+df <- df_long %>% filter(analytical_sample)
+cat("3_Choice_behaviour.R: respondents in the analytical sample:",
+    n_distinct(df$i_NUMBER), "\n")
+
+# Output folder for the figures of the paper
+fig_dir <- "Hauptstudie/Paper"
+dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
 
 #=====================================
 # 1: How many respondents chose alternative 1 and alternative 2?
@@ -39,6 +47,15 @@ summary_table_pct <- summary_table %>%
   mutate(percent = round(100 * num_persons / total_people, 2))
 
 print(summary_table_pct)
+
+# Numbers reported in Section 4.1.1 and 4.1.2
+n_resp      <- n_distinct(df$i_NUMBER)
+n_always_sq <- sum(summary_table$num_persons[summary_table$count_choice_2 == 10])
+n_never_sq  <- sum(summary_table$num_persons[summary_table$count_choice_2 == 0])
+n_sq_7plus  <- sum(summary_table$num_persons[summary_table$count_choice_2 >= 7])
+cat(sprintf("Kept current contract in all ten choice tasks: %d (%.1f%%)\n", n_always_sq, 100 * n_always_sq / n_resp))
+cat(sprintf("Chose the energy sharing offer in all ten tasks: %d (%.1f%%)\n", n_never_sq, 100 * n_never_sq / n_resp))
+cat(sprintf("Chose the status quo at least seven times: %d\n", n_sq_7plus))
 
 # Bar chart for number of people who choose 2 exactly X times
 ggplot(summary_table_pct, aes(x = factor(count_choice_2), y = percent)) +
@@ -257,7 +274,7 @@ combined_plot_percent$group <- factor(combined_plot_percent$group, levels = c(
   "tenants"
 ))
 
-ggplot(combined_plot_percent, aes(x = factor(count_choice_2), y = percent, fill = group)) +
+fig2a_pl <- ggplot(combined_plot_percent, aes(x = factor(count_choice_2), y = percent, fill = group)) +
   geom_bar(stat = "identity", position = "dodge") +
   
   scale_fill_manual(
@@ -289,6 +306,14 @@ ggplot(combined_plot_percent, aes(x = factor(count_choice_2), y = percent, fill 
     legend.title = element_text(size = 16),    # Legendentitel
     legend.text = element_text(size = 14)      # Legendeneinträge
   )
+
+# Figure 2a
+print(fig2a_pl)
+ggsave(file.path(fig_dir, "Figure_2a_times_status_quo_by_group.png"),
+       fig2a_pl, width = 9, height = 5.5, dpi = 300, bg = "white")
+write.csv(combined_plot_percent,
+          file.path(fig_dir, "Figure_2a_times_status_quo_by_group.csv"),
+          row.names = FALSE, fileEncoding = "UTF-8")
 
 #====================================
 # 2: How many respondents chose alternative 1 and alternative 2 depending on task ID and block?
@@ -528,7 +553,7 @@ colnames(average_pref_table_long) <- c("Relative_Costs", "Organisator", "value")
 pref_Organisator_check_price <- ggplot(average_pref_table_long, aes(x = Relative_Costs, y = value, color = as.factor(Organisator), group = Organisator)) +
   geom_line(size = 1.5) +
   geom_point(size = 3) + 
-  labs(title = 'Price/Organsiator', x = "Relative Costs", y = "Approval Rate for Change", color = "Goal:") +
+  labs(title = 'Price/Organizer', x = "Relative Costs", y = "Approval Rate for Change", color = "Organizer:") +
   theme_minimal() +
   theme(legend.position = "bottom",    
         axis.title = element_text(size = 14),       
@@ -540,6 +565,16 @@ pref_Organisator_check_price <- ggplot(average_pref_table_long, aes(x = Relative
   ylim(0, 1)+
   scale_x_continuous(breaks = seq(min(average_pref_table_long$Relative_Costs), max(average_pref_table_long$Relative_Costs), by = 3))
 
+
+# Figure A.1: approval rate by price and attribute (four panels)
+fig_A1 <- list(a_organizer     = pref_Organisator_check_price,
+               b_goal          = pref_Motiv_check_price,
+               c_participation = pref_Partizipation_check_price,
+               d_contract      = pref_Contract_check_price)
+for (p in names(fig_A1)) {
+  ggsave(file.path(fig_dir, paste0("Figure_A1_", p, ".png")),
+         fig_A1[[p]], width = 7, height = 5, dpi = 300, bg = "white")
+}
 
 ##Price
 prop_table <- prop.table(table(df$Price, df$choice), margin = 1)
@@ -637,8 +672,8 @@ group_n <- approval_groups %>%
 
 group_labels <- setNames(
   paste0(c("Old target group", "Low income", "MFH residents", "Tenants"),
-         " (n = ", format(group_n$n[match(names(target_groups), group_n$group)],
-                          big.mark = ","), ")"),
+         " (n = ", trimws(format(group_n$n[match(names(target_groups), group_n$group)],
+                          big.mark = ",")), ")"),
   names(target_groups)
 )
 
@@ -662,6 +697,7 @@ approval_price_groups_pl <- ggplot(
   ) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   coord_cartesian(ylim = c(0, 1)) +
+  guides(color = guide_legend(nrow = 2)) +
   labs(
     x = "Relative costs (% above the current contract)",
     y = "Approval rate for change"
@@ -677,11 +713,9 @@ approval_price_groups_pl <- ggplot(
 
 print(approval_price_groups_pl)
 
-# Export next to the other paper outputs
-fig_dir <- "Hauptstudie/Paper"
-dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
-ggsave(file.path(fig_dir, "Figure_approval_rate_by_price_and_group.png"),
-       approval_price_groups_pl, width = 9, height = 5.5, dpi = 300)
+# Figure 2b, exported next to the other paper outputs
+ggsave(file.path(fig_dir, "Figure_2b_approval_rate_by_price_and_group.png"),
+       approval_price_groups_pl, width = 9, height = 5.5, dpi = 300, bg = "white")
 write.csv(approval_wide,
-          file.path(fig_dir, "Figure_approval_rate_by_price_and_group.csv"),
+          file.path(fig_dir, "Figure_2b_approval_rate_by_price_and_group.csv"),
           row.names = FALSE, fileEncoding = "UTF-8")

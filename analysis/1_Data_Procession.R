@@ -282,3 +282,15 @@ df_long <- df_long %>% select(
   -starts_with("choiceA"))
 
 
+#===========================
+# Analytical sample
+#===========================
+# Respondents with complete information on the seven socio-demographic
+# variables of the class-allocation function of the latent class models
+# (2,199 of 2,401 respondents). 
+analytical_vars <- c("inter_env_awareness_score", "inter_sex", "inter_age",
+                     "inter_educ_years", "inter_lowincome", "inter_highincome",
+                     "inter_mfh_or_tenant")
+
+df_long <- df_long %>%
+  mutate(analytical_sample = if_all(all_of(analytical_vars), is.finite))

@@ -76,6 +76,11 @@ if (!exists("df_long")) {
 
 database <- as.data.frame(df_long %>% filter(if_all(all_of(vars_util1), is.finite)))
 database <- database[order(database$i_NUMBER), ]
+
+# Same respondents as the flag analytical_sample (1_Data_Procession.R),
+# which the descriptive scripts for Section 4.1 use
+stopifnot(setequal(unique(database$i_NUMBER),
+                   unique(df_long$i_NUMBER[df_long$analytical_sample])))
 database <<- database
 
 cat("Estimation sample:", nrow(database), "rows,",
